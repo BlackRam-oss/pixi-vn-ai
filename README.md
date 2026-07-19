@@ -1,25 +1,359 @@
-# Pixi’VN Library Template (tsup + Vitest)
+# @drincs/pixi-vn-ai
 
-This is a template repository for creating visual novel libraries using PixiJS, bundled with `tsup` and tested with `Vitest`. It provides a basic structure to get you started quickly with your own Pixi’VN library.
+AI-powered dialogue and image generation for [Pixi'VN](https://pixi-vn.com) visual novels.
 
-## Features
+This library is **not** a low-level LLM client. It's a small, high-level abstraction with three
+functions — `ai.text.generateDialog`, `ai.image.generateBackground`, `ai.image.generateElement` —
+that hide all prompt engineering: you pass a natural-language request plus a few structured
+options (scene, style, speaker, alignment, ...), and the library assembles the actual prompt sent
+to whatever model you configured (or a local fallback if you configured none).
 
-- TypeScript support for type safety and modern JavaScript features.
-- Bundling with `tsup` for efficient and optimized builds.
-- Testing with `Vitest` for reliable and maintainable code.
-- Pre-configured scripts for building and testing your library.
-- Post-build script to replace Pixi.js imports with Pixi’VN compatible imports.
-- Ready-to-use `package.json` with essential dependencies and configurations.
-- Example source files to demonstrate library structure and usage.
-- GitHub Actions workflow for automated testing on push and pull requests.
-- ESLint configuration for maintaining code quality and consistency.
-- Prettier configuration for consistent code formatting.
-- .gitignore file to exclude unnecessary files from version control.
+It's designed to run entirely in the **browser**.
 
-## How build
+## Installation
 
-To build the library, run the following command:
+```npm
+npm install @drincs/pixi-vn-ai @drincs/pixi-vn ai @mlc-ai/web-llm
+```
 
-```bash
-npm run build
+- `@drincs/pixi-vn` — the visual novel engine this library is built for.
+- `ai` ([AI SDK](https://ai-sdk.dev)) — used to talk to any AI SDK-compatible model (OpenAI,
+  Anthropic, Google, Ollama, ...).
+- `@mlc-ai/web-llm` — powers the built-in local fallback model (see below), so you never _have_ to
+  configure a provider to get started.
+
+## Initializing
+
+Call `ai.init(...)` once, at startup:
+
+```ts
+import { ai } from "@drincs/pixi-vn-ai";
+
+await ai.init();
+```
+
+With no arguments, `ai.init()` downloads and runs a small local [WebLLM](https://github.com/mlc-ai/web-llm)
+model (`SmolLM2-360M-Instruct`) directly in the browser — no API key, no server, nothing to
+configure. This covers `ai.text.generateDialog` out of the box. **WebLLM cannot generate images**,
+so `ai.image.generateBackground`/`ai.image.generateElement` require an external model regardless.
+
+To use a specific model instead, pass it through [`ai` (the AI SDK)](https://ai-sdk.dev/providers):
+
+```ts
+import { ai } from "@drincs/pixi-vn-ai";
+import { openai } from "@ai-sdk/openai";
+
+await ai.init({
+  textProvider: openai("gpt-5"),
+  imageProvider: openai.image("gpt-image-1"),
+});
+```
+
+- `textProvider` is a [`LanguageModel`](https://ai-sdk.dev/docs/foundations/providers-and-models)
+  from any AI SDK provider. It drives `ai.text.generateDialog`, and is also used as a fallback for
+  image generation on multimodal models (e.g. Gemini's image generation).
+- `imageProvider` is an [`ImageModel`](https://ai-sdk.dev/docs/ai-sdk-core/image-generation) from
+  any AI SDK provider. It drives `ai.image.generateBackground`/`ai.image.generateElement`.
+
+You don't need both: set only `textProvider` for dialogue (images keep needing one of the two, as
+above), only `imageProvider` for images, or both.
+
+### Using ComfyUI for images
+
+If you want to generate images with a self-hosted [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
+server instead, also install:
+
+```npm
+npm install @stable-canvas/comfyui-client
+```
+
+If you'd rather generate images with your own self-hosted [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
+server, pass a `ComfyUIImageModel` as `imageProvider`:
+
+```ts
+import { ai } from "@drincs/pixi-vn-ai";
+import { ComfyUIImageModel } from "@drincs/pixi-vn-ai/comfyui";
+import myWorkflow from "./my-workflow-api.json"; // exported from ComfyUI's "Save (API Format)"
+
+await ai.init({
+  imageProvider: new ComfyUIImageModel({
+    apiHost: "127.0.0.1:8188",
+    workflow: myWorkflow,
+    // the node/input in `myWorkflow` that holds the positive prompt (usually a CLIPTextEncode node)
+    promptNodeId: "6",
+    promptInputName: "text", // optional, defaults to "text"
+  }),
+});
+```
+
+Since ComfyUI runs an arbitrary node graph rather than accepting a plain prompt, `ComfyUIImageModel`
+only injects the developer request into the node/input you point it at — everything else
+(checkpoint, sampler, seed, resolution, ...) is whatever your exported workflow already specifies.
+
+## Usage
+
+### `ai.text.generateDialog`
+
+```ts
+const line = await ai.text.generateDialog(
+  "The advisor reassures the king that the kingdom is safe.",
+  {
+    history: true,
+    scene: "The throne room, late at night, lit only by torches.",
+    style: "Tense, formal, a little melancholic.",
+    language: "English",
+    context: "The king has not slept in three days.",
+    speaker: "advisor",
+    listeners: ["king"],
+  },
+);
+```
+
+Generates a line of dialogue. `history` (on by default) pulls Pixi'VN's narrative history so the
+model has continuity; `scene`/`style`/`context` steer tone and setting; `language` fixes the output
+language; `speaker`/`listeners` accept a character ID (resolved against Pixi'VN's
+`RegisteredCharacters`, or used as-is if not registered) or an object, single or array.
+
+<details>
+<summary>Prompt generated by the call above</summary>
+
+````text
+### Instructions
+
+You are generating narrative dialogue for a visual novel.
+Generate Markdown text.
+Keep the Markdown simple and readable.
+Do not use headings.
+Do not use tables.
+Do not use unnecessary lists.
+Use bold and italic only when they improve readability.
+HTML is allowed only when necessary; prefer <span> for styling (e.g. colors). Avoid excessive HTML usage.
+Return only the generated content.
+Do not explain the generated result.
+
+### Developer Request
+
+The advisor reassures the king that the kingdom is safe.
+
+### Narrative History
+
+The narrative history so far, serialized as JSON.
+
+​```
+[
+  {
+    "stepIndex": 4,
+    "dialogue": {
+      "character": "advisor",
+      "text": "Your Majesty, the council awaits your decision."
+    }
+  }
+]
+​```
+
+### Scene
+
+The throne room, late at night, lit only by torches.
+
+### Style
+
+Tense, formal, a little melancholic.
+
+### Language
+
+The language the generated content must be written in.
+
+​```
+English
+​```
+
+### Context
+
+The king has not slept in three days.
+
+### Speaker
+
+The character(s) speaking, serialized as JSON.
+
+​```
+[
+  {
+    "id": "advisor"
+  }
+]
+​```
+
+### Listeners
+
+The character(s) receiving the dialogue, serialized as JSON.
+
+​```
+[
+  {
+    "id": "king"
+  }
+]
+​```
+````
+
+(`Narrative History` is read automatically from Pixi'VN — shown here as an example. `Speaker`/
+`Listeners` show the `{ id }` fallback for an unregistered character; a registered one would include
+its full data instead.)
+
+</details>
+
+### `ai.image.generateBackground`
+
+```ts
+const background = await ai.image.generateBackground(
+  "The throne room, lit by torches, a storm outside the windows.",
+  {
+    history: false,
+    scene: "Night, medieval castle interior.",
+    style: "Oil painting, warm color palette.",
+    context:
+      "This will be used as the main backdrop for the throne room scenes.",
+    referenceImage: "throne-room-sketch",
+  },
+);
+```
+
+Generates a background meant to fill the whole game canvas. Its size is read directly from Pixi'VN
+and included in the prompt automatically — you never pass it. `referenceImage` is a Pixi'VN asset
+alias (or a URL/data URI); when given, it's used as image-to-image guidance.
+
+<details>
+<summary>Prompt generated by the call above</summary>
+
+````text
+### Instructions
+
+You are generating a background illustration for a visual novel scene.
+This image fills the entire game canvas: match the canvas size given below and cover the full frame edge-to-edge, with no borders, letterboxing or unused margins.
+If a reference image is provided, use it as the basis for the generated image.
+Otherwise, generate the image purely from the textual context below.
+Match the requested scene, style and subjects as closely as possible.
+
+### Developer Request
+
+The throne room, lit by torches, a storm outside the windows.
+
+### Scene
+
+Night, medieval castle interior.
+
+### Style
+
+Oil painting, warm color palette.
+
+### Context
+
+This will be used as the main backdrop for the throne room scenes.
+
+### Reference Image
+
+A reference image has been provided, encoded as a base64 data URI, and should be used as visual guidance.
+
+​```
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA... (truncated)
+​```
+
+### Canvas Size
+
+1920x1080
+````
+
+</details>
+
+### `ai.image.generateElement`
+
+```ts
+const advisorSprite = await ai.image.generateElement(
+  "The advisor, an elderly man with a long grey beard, wearing dark blue robes, worried expression.",
+  {
+    history: false,
+    scene: "Standing in the throne room.",
+    style: "Oil painting, warm color palette, matching the background.",
+    context: "This character will be reused across multiple scenes.",
+    referenceImage: "advisor-concept-art",
+    backgroundImage: "throne-room-background",
+    align: { x: 0.75, y: 1 },
+  },
+);
+```
+
+Generates a single element (typically a character) meant to be layered on top of other visuals,
+with a transparent background. `backgroundImage` (a Pixi'VN asset alias, or `true` to capture
+whatever is currently on the game canvas) gives the model visual context on what it's being
+composited over; `align` tells it where on screen it'll be placed, so it can compose accordingly.
+When both `referenceImage` and `backgroundImage` are set, both appear in the prompt, but only
+`referenceImage` is actually forwarded to the model as an image-to-image reference.
+
+<details>
+<summary>Prompt generated by the call above</summary>
+
+````text
+### Instructions
+
+You are generating a single visual element (e.g. a character) for a visual novel, meant to be layered on top of a background.
+The area behind the subject must be fully transparent: do not generate any background, ground or scenery of your own.
+If a background reference image is provided, use it only to match lighting, perspective and scale; do not reproduce it.
+If alignment values are provided, compose the subject so it reads naturally when placed at that position on screen.
+Match the requested scene, style and subjects as closely as possible.
+
+### Developer Request
+
+The advisor, an elderly man with a long grey beard, wearing dark blue robes, worried expression.
+
+### Scene
+
+Standing in the throne room.
+
+### Style
+
+Oil painting, warm color palette, matching the background.
+
+### Context
+
+This character will be reused across multiple scenes.
+
+### Reference Image
+
+A reference image has been provided, encoded as a base64 data URI, and should be used as visual guidance.
+
+​```
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA... (truncated)
+​```
+
+### Background Reference
+
+The background image this element will be placed over, encoded as a base64 data URI: use it as visual guidance for lighting, perspective and scale.
+
+​```
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA... (truncated)
+​```
+
+### Alignment
+
+Where the element will be positioned on the canvas: x and y are each a 0-1 fraction of the canvas' width/height, and that same fraction is also used as the element's own anchor point, so the value describes both where on the canvas the point sits and which point of the element is placed there. 0 = the element's left/top edge is flush against the canvas' left/top edge, 1 = the element's right/bottom edge is flush against the canvas' right/bottom edge, 0.5 = the element is centered on that axis.
+
+​```
+{
+  "x": 0.75,
+  "y": 1
+}
+​```
+````
+
+</details>
+
+## Customizing the prompt templates
+
+Every generated prompt starts from a built-in "Instructions" template, which you can override per
+kind:
+
+```ts
+ai.templates.dialog = { instructions: "..." };
+ai.templates.image.background = { instructions: "..." };
+ai.templates.image.element = { instructions: "..." };
 ```

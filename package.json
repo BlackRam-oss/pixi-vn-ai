@@ -82,6 +82,16 @@
     "pixi",
     "pixi-vn",
     "visual",
-    "visual-novel"
+    "visual-novel",
+    "ai",
+    "llm",
+    "genai",
+    "generative-ai",
+    "text-generation",
+    "image-generation",
+    "ai-sdk",
+    "webllm",
+    "comfyui",
+    "stable-diffusion"
   ]
 }

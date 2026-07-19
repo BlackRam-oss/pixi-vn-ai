@@ -233,9 +233,7 @@ ${content}`;
             characters.map((character) => {
                 if (typeof character === "string") {
                     try {
-                        return JSON.stringify(
-                            RegisteredCharacters.get(character) || { id: character },
-                        );
+                        return RegisteredCharacters.get(character) || { id: character };
                     } catch {
                         return { id: character };
                     }
