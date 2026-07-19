@@ -1,6 +1,5 @@
-import { buildPrompt } from "@/generators/GenerateEngine";
 import { getAIState, setAIState } from "@/init/AIState";
-import { DEAFAULT_IMAGE_TEMPLATE, DEFAULT_DIALOG_TEMPLATE } from "@/prompt";
+import { DEAFAULT_IMAGE_TEMPLATE, DEFAULT_DIALOG_TEMPLATE, PromptBuilder } from "@/prompt";
 import AISDKProvider from "@/providers/AISDKProvider";
 import WebLLMProvider from "@/providers/WebLLMProvider";
 import type { GenerateOptions } from "@/types";
@@ -81,7 +80,7 @@ export namespace ai {
                     `Pixi'VN AI: provider "${provider.name}" does not support dialog generation.`,
                 );
             }
-            const prompt = buildPrompt("dialog", request, options);
+            const prompt = PromptBuilder.build(templates.dialog, request, options);
             return provider.dialog.generateText(prompt);
         }
     }
@@ -102,7 +101,7 @@ export namespace ai {
                     `Pixi'VN AI: provider "${provider.name}" does not support image generation.`,
                 );
             }
-            const prompt = buildPrompt("image", request, options);
+            const prompt = PromptBuilder.build(templates.image, request, options);
             return provider.image.generateImage(prompt, options?.referenceImage);
         }
     }

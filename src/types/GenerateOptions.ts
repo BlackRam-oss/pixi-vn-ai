@@ -1,3 +1,5 @@
+import { ai } from "@/ai";
+
 /**
  * Options accepted by {@link ai.dialog.generate} and {@link ai.image.generate}.
  *
