@@ -1,11 +1,23 @@
-import { stepHistory, type NarrationHistory } from "@drincs/pixi-vn";
+import {
+  CharacterBaseModel,
+  RegisteredCharacters,
+  stepHistory,
+  type NarrationHistory,
+} from "@drincs/pixi-vn";
 import { ai, type DialogGenerateOptions } from "@drincs/pixi-vn-ai";
 import { DEFAULT_DIALOG_TEMPLATE, PromptBuilder } from "@drincs/pixi-vn-ai/prompt";
 import { useEffect, useState } from "react";
 import { runIntroLabel } from "./labels/introLabel";
 
-const SPEAKER = { name: "King", mood: "anxious" };
-const LISTENER = { name: "Advisor" };
+// Matches the character IDs used in ./labels/introLabel.ts. Registering them for real (instead of
+// passing ad-hoc objects) lets `speaker`/`listeners` resolve full character data via Pixi'VN's
+// RegisteredCharacters, like a real game would.
+const king = new CharacterBaseModel("king", { name: "King" });
+const advisor = new CharacterBaseModel("advisor", { name: "Advisor" });
+RegisteredCharacters.add([king, advisor]);
+
+const SPEAKER = king.id;
+const LISTENER = advisor.id;
 
 function renderDialogueLine(item: NarrationHistory, index: number) {
   if (!item.dialogue) {
@@ -162,7 +174,7 @@ export default function App() {
               checked={includeSpeaker}
               onChange={(e) => setIncludeSpeaker(e.target.checked)}
             />{" "}
-            Speaker: {JSON.stringify(SPEAKER)}
+            Speaker: {king.name} (id: "{SPEAKER}")
           </label>
           <br />
           <label>
@@ -171,7 +183,7 @@ export default function App() {
               checked={includeListeners}
               onChange={(e) => setIncludeListeners(e.target.checked)}
             />{" "}
-            Listeners: {JSON.stringify([LISTENER])}
+            Listeners: {advisor.name} (id: "{LISTENER}")
           </label>
           <br />
           <label>
