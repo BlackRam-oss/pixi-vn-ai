@@ -13,19 +13,6 @@ export default interface GenerateOptions {
      */
     history?: boolean;
     /**
-     * Character(s) speaking or subject(s) of the generated image.
-     *
-     * Can be any serializable object (or array of objects). Pixi'VN AI does not define a
-     * `Character` model: developers are free to pass whatever shape fits their game.
-     */
-    speaker?: unknown | unknown[];
-    /**
-     * Character(s) receiving the dialogue or observing the scene.
-     *
-     * Can be any serializable object (or array of objects).
-     */
-    listeners?: unknown | unknown[];
-    /**
      * Additional developer context, injected verbatim into the prompt.
      */
     context?: string;
