@@ -6,6 +6,7 @@ import type {
     PromptTemplate,
 } from "@/types";
 import type { CharacterItem } from "@/types/CharacterItem";
+import { resolveAssetImage } from "@/utils";
 import { RegisteredCharacters } from "@drincs/pixi-vn";
 import { stepHistory } from "@drincs/pixi-vn/history";
 
@@ -27,6 +28,18 @@ type PromptOptions = DialogGenerateOptions &
  */
 export namespace PromptBuilder {
     /**
+     * Title of the section holding the resolved reference image, when {@link ImageGenerateOptions.referenceImage}
+     * is set. Callers (e.g. `ai.image.*`) can look this section up in {@link buildSections}'s
+     * result to reuse the same resolved base64 image as the provider's reference image.
+     */
+    export const REFERENCE_IMAGE_TITLE = "Reference Image";
+    /**
+     * Title of the section holding the resolved background image, when
+     * {@link ElementImageGenerateOptions.backgroundImage} is set. See {@link REFERENCE_IMAGE_TITLE}.
+     */
+    export const BACKGROUND_REFERENCE_TITLE = "Background Reference";
+
+    /**
      * Assemble the sections of a prompt, without applying any specific format to the final string.
      * @param template The template supplying the instructions section.
      * @param request The developer's natural language request.
@@ -35,12 +48,12 @@ export namespace PromptBuilder {
      *   {@link ai.image.generateBackground}. Callers that read state {@link PromptBuilder} doesn't
      *   have access to (like Pixi'VN's canvas) are responsible for building these themselves.
      */
-    export function buildSections(
+    export async function buildSections(
         template: PromptTemplate,
         request: string,
         options: PromptOptions = {},
         extraSections: PromptSection[] = [],
-    ): PromptSection[] {
+    ): Promise<PromptSection[]> {
         const sections: PromptSection[] = [];
         const {
             speaker,
@@ -113,17 +126,19 @@ export namespace PromptBuilder {
 
         if (referenceImage) {
             sections.push({
-                title: "Reference Image",
-                content:
-                    "A reference image has been provided and should be used as visual guidance.",
+                title: REFERENCE_IMAGE_TITLE,
+                description:
+                    "A reference image has been provided, encoded as a base64 data URI, and should be used as visual guidance.",
+                content: await resolveAssetImage(referenceImage),
             });
         }
 
         if (backgroundImage) {
             sections.push({
-                title: "Background Reference",
-                content:
-                    "The background image this element will be placed over has been provided: use it as visual guidance for lighting, perspective and scale.",
+                title: BACKGROUND_REFERENCE_TITLE,
+                description:
+                    "The background image this element will be placed over, encoded as a base64 data URI: use it as visual guidance for lighting, perspective and scale.",
+                content: await resolveAssetImage(backgroundImage),
             });
         }
 
@@ -149,15 +164,21 @@ export namespace PromptBuilder {
      * @param options The generate options driving which sections get included.
      * @param extraSections Additional sections appended at the end.
      */
-    export function build(
+    export async function build(
         template: PromptTemplate,
         request: string,
         options: PromptOptions = {},
         extraSections: PromptSection[] = [],
-    ): string {
-        return buildSections(template, request, options, extraSections)
-            .map(formatSection)
-            .join("\n\n");
+    ): Promise<string> {
+        const sections = await buildSections(template, request, options, extraSections);
+        return formatSections(sections);
+    }
+
+    /**
+     * Format a list of sections (e.g. from {@link buildSections}) into the final prompt string.
+     */
+    export function formatSections(sections: PromptSection[]): string {
+        return sections.map(formatSection).join("\n\n");
     }
 
     /**

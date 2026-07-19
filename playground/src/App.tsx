@@ -78,9 +78,9 @@ export default function App() {
     }
   }
 
-  function handlePreviewPrompt() {
+  async function handlePreviewPrompt() {
     setPromptPreview(
-      PromptBuilder.build(DEFAULT_DIALOG_TEMPLATE, request, buildOptions()),
+      await PromptBuilder.build(DEFAULT_DIALOG_TEMPLATE, request, buildOptions()),
     );
   }
 

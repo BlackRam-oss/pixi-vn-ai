@@ -11,7 +11,7 @@ import type {
     ElementImageGenerateOptions,
 } from "@/types";
 import type PromptTemplate from "@/types/PromptTemplate";
-import { resolveAssetUrl } from "@/utils";
+import { resolveAssetImage } from "@/utils";
 import { canvas } from "@drincs/pixi-vn/canvas";
 import type { ImageModel, LanguageModel } from "ai";
 
@@ -76,7 +76,7 @@ export namespace ai {
             request: string,
             options?: DialogGenerateOptions,
         ): Promise<string> {
-            const prompt = PromptBuilder.build(templates.dialog, request, options);
+            const prompt = await PromptBuilder.build(templates.dialog, request, options);
             return Provider.generateText(prompt);
         }
     }
@@ -96,13 +96,17 @@ export namespace ai {
             request: string,
             options?: BackgroundImageGenerateOptions,
         ): Promise<string> {
-            const prompt = PromptBuilder.build(templates.image.background, request, options, [
-                { title: "Canvas Size", content: `${canvas.width}x${canvas.height}` },
-            ]);
-            return Provider.generateImage(
-                prompt,
-                options?.referenceImage ? resolveAssetUrl(options.referenceImage) : undefined,
+            const sections = await PromptBuilder.buildSections(
+                templates.image.background,
+                request,
+                options,
+                [{ title: "Canvas Size", content: `${canvas.width}x${canvas.height}` }],
             );
+            const prompt = PromptBuilder.formatSections(sections);
+            const referenceImage = options?.referenceImage
+                ? await resolveAssetImage(options?.referenceImage)
+                : undefined;
+            return Provider.generateImage(prompt, referenceImage);
         }
 
         /**
@@ -121,12 +125,16 @@ export namespace ai {
             request: string,
             options?: ElementImageGenerateOptions,
         ): Promise<string> {
-            const prompt = PromptBuilder.build(templates.image.element, request, options);
-            const assetAlias = options?.referenceImage ?? options?.backgroundImage;
-            return Provider.generateImage(
-                prompt,
-                assetAlias ? resolveAssetUrl(assetAlias) : undefined,
+            const sections = await PromptBuilder.buildSections(
+                templates.image.element,
+                request,
+                options,
             );
+            const prompt = PromptBuilder.formatSections(sections);
+            const referenceImage = options?.referenceImage
+                ? await resolveAssetImage(options?.referenceImage)
+                : undefined;
+            return Provider.generateImage(prompt, referenceImage);
         }
     }
 }

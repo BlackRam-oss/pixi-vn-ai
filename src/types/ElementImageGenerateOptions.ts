@@ -10,13 +10,15 @@ import type ImageGenerateOptions from "./ImageGenerateOptions";
  */
 export default interface ElementImageGenerateOptions extends ImageGenerateOptions {
     /**
-     * The background image (a URL or a data URI) this element will be placed over, so the model
-     * can compose the subject coherently with what's behind it (lighting, perspective, scale,
-     * ...).
+     * The background image this element will be placed over, so the model can compose the
+     * subject coherently with what's behind it (lighting, perspective, scale, ...).
+     *
+     * Pass `true` to use whatever is currently rendered on the game canvas instead of a specific
+     * asset.
      *
      * Forwarded to the provider as the reference image when {@link referenceImage} isn't set.
      */
-    backgroundImage?: AssetAliasIdType;
+    backgroundImage?: AssetAliasIdType | true;
     /**
      * Position of the element within the canvas (Pixi'VN's `align`, see
      * https://pixi-vn.com/start/canvas-position). Each axis is a 0-1 fraction of the canvas'

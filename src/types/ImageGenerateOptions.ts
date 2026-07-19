@@ -6,9 +6,7 @@ import type GenerateOptions from "./GenerateOptions";
  */
 export default interface ImageGenerateOptions extends GenerateOptions {
     /**
-     * Optional reference image (a URL or a data URI, e.g. the string returned by a previous
-     * `ai.image.generateBackground`/`ai.image.generateElement` call), forwarded to providers that
-     * support image-to-image generation.
+     * Optional reference image, forwarded to providers that support image-to-image generation.
      */
     referenceImage?: AssetAliasIdType;
 }
