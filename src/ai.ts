@@ -1,6 +1,6 @@
 import { buildPrompt } from "@/generators/GenerateEngine";
 import { getAIState, setAIState } from "@/init/AIState";
-import DefaultTemplates from "@/prompt/DefaultTemplates";
+import DefaultTemplates from "@/prompt/templates";
 import AISDKProvider from "@/providers/AISDKProvider";
 import WebLLMProvider from "@/providers/WebLLMProvider";
 import type { GenerateOptions } from "@/types";

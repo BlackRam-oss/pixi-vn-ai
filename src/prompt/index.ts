@@ -1,4 +1,2 @@
-export { default as DefaultTemplates } from "./DefaultTemplates";
-export { default as DialogTemplate } from "./DialogTemplate";
-export { default as ImageTemplate } from "./ImageTemplate";
 export { PromptBuilder } from "./PromptBuilder";
+export { DEAFAULT_IMAGE_TEMPLATE, DEFAULT_DIALOG_TEMPLATE } from "./templates";
