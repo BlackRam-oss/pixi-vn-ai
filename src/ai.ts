@@ -2,7 +2,7 @@ import { getAIState, setAIState } from "@/init/AIState";
 import { DEAFAULT_IMAGE_TEMPLATE, DEFAULT_DIALOG_TEMPLATE, PromptBuilder } from "@/prompt";
 import AISDKProvider from "@/providers/AISDKProvider";
 import WebLLMProvider from "@/providers/WebLLMProvider";
-import type { GenerateOptions } from "@/types";
+import type { DialogGenerateOptions, ImageGenerateOptions } from "@/types";
 import type PromptTemplate from "@/types/PromptTemplate";
 import { CreateMLCEngine } from "@mlc-ai/web-llm";
 import type { ImageModel, LanguageModel } from "ai";
@@ -72,7 +72,7 @@ export namespace ai {
          */
         export async function generate(
             request: string,
-            options?: GenerateOptions,
+            options?: DialogGenerateOptions,
         ): Promise<string> {
             const { provider } = getAIState();
             if (!provider.dialog) {
@@ -93,7 +93,7 @@ export namespace ai {
          */
         export async function generate(
             request: string,
-            options?: GenerateOptions,
+            options?: ImageGenerateOptions,
         ): Promise<unknown> {
             const { provider } = getAIState();
             if (!provider.image) {

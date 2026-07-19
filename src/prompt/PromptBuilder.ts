@@ -1,5 +1,16 @@
-import type { GenerateOptions, PromptSection, PromptTemplate } from "@/types";
+import type {
+    DialogGenerateOptions,
+    ImageGenerateOptions,
+    PromptSection,
+    PromptTemplate,
+} from "@/types";
 import { stepHistory } from "@drincs/pixi-vn/history";
+
+/**
+ * The union of every field {@link DialogGenerateOptions} and {@link ImageGenerateOptions} can
+ * carry, since the builder assembles sections for both without knowing which one it was called for.
+ */
+type PromptOptions = DialogGenerateOptions & ImageGenerateOptions;
 
 /**
  * Centralizes prompt construction so that generators never concatenate strings directly.
@@ -18,7 +29,7 @@ export namespace PromptBuilder {
     export function buildSections(
         template: PromptTemplate,
         request: string,
-        options: GenerateOptions = {},
+        options: PromptOptions = {},
     ): PromptSection[] {
         const sections: PromptSection[] = [];
 
@@ -81,7 +92,7 @@ export namespace PromptBuilder {
     export function build(
         template: PromptTemplate,
         request: string,
-        options: GenerateOptions = {},
+        options: PromptOptions = {},
     ): string {
         return buildSections(template, request, options)
             .map((section) => `## ${section.title}\n${section.content}`)

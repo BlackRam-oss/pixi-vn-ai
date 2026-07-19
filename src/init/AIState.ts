@@ -1,4 +1,4 @@
-import type AIProvider from "../types/AIProvider";
+import type AIProvider from "@/types/AIProvider";
 
 interface AIState {
     provider: AIProvider;

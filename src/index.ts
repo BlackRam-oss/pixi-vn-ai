@@ -1,3 +1,10 @@
 export { ai } from "@/ai";
-export { DefaultTemplates, DialogTemplate, ImageTemplate, PromptBuilder } from "./prompt";
-export type { GenerateOptions, PromptSection, PromptTemplate, Templates } from "./types";
+export { DEAFAULT_IMAGE_TEMPLATE, DEFAULT_DIALOG_TEMPLATE, PromptBuilder } from "./prompt";
+export type {
+    DialogGenerateOptions,
+    GenerateOptions,
+    ImageGenerateOptions,
+    PromptSection,
+    PromptTemplate,
+    Templates,
+} from "./types";

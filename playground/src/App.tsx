@@ -1,5 +1,10 @@
 import { stepHistory, type NarrationHistory } from "@drincs/pixi-vn";
-import { ai, DialogTemplate, PromptBuilder, type GenerateOptions } from "@drincs/pixi-vn-ai";
+import {
+  ai,
+  DEFAULT_DIALOG_TEMPLATE,
+  PromptBuilder,
+  type DialogGenerateOptions,
+} from "@drincs/pixi-vn-ai";
 import { useEffect, useState } from "react";
 import { runIntroLabel } from "./labels/introLabel";
 
@@ -48,7 +53,7 @@ export default function App() {
     runIntroLabel().then(() => setHistory(stepHistory.currentLabelHistory));
   }, []);
 
-  function buildOptions(): GenerateOptions {
+  function buildOptions(): DialogGenerateOptions {
     return {
       history: includeHistory,
       speaker: includeSpeaker ? SPEAKER : undefined,
@@ -75,7 +80,7 @@ export default function App() {
 
   function handlePreviewPrompt() {
     setPromptPreview(
-      PromptBuilder.build(DialogTemplate, request, buildOptions()),
+      PromptBuilder.build(DEFAULT_DIALOG_TEMPLATE, request, buildOptions()),
     );
   }
 

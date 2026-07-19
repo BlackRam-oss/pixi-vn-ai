@@ -1,7 +1,5 @@
-import { ai } from "@/ai";
-
 /**
- * Options accepted by {@link ai.dialog.generate} and {@link ai.image.generate}.
+ * Options shared by {@link ai.dialog.generate} and {@link ai.image.generate}.
  *
  * These options describe *what* should be included in the generated prompt.
  * The actual prompt text is always assembled internally by the {@link PromptBuilder}.
@@ -39,12 +37,4 @@ export default interface GenerateOptions {
      * Desired style (tone of voice, art style, etc).
      */
     style?: string;
-    /**
-     * Output language.
-     */
-    language?: string;
-    /**
-     * Optional reference image, forwarded to providers that support image-to-image generation.
-     */
-    referenceImage?: unknown;
 }
