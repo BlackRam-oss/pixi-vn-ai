@@ -59,17 +59,9 @@
     "vite-tsconfig-paths": "^6.1.1"
   },
   "peerDependencies": {
-    "@drincs/pixi-vn": "*",
-    "@mlc-ai/web-llm": "*",
-    "ai": "*"
-  },
-  "peerDependenciesMeta": {
-    "@mlc-ai/web-llm": {
-      "optional": true
-    },
-    "ai": {
-      "optional": true
-    }
+    "@drincs/pixi-vn": ">=1.8.25",
+    "@mlc-ai/web-llm": ">=0.2.84",
+    "ai": ">=7.0.31"
   },
   "dependencies": {
     "vitest": "^4.1.4"
