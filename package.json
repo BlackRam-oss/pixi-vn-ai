@@ -23,7 +23,8 @@
     "format": "biome format --write",
     "test": "vitest",
     "docs": "typedoc",
-    "playground": "npm run build && npm run dev --workspace=playground"
+    "playground": "npm run build && npm run dev --workspace=playground",
+    "generate-options-schema": "node scripts/generate-options-schema.mjs && biome format --write src/ink/options-schema.generated.ts"
   },
   "exports": {
     ".": {
@@ -49,10 +50,18 @@
       "import": "./dist/comfyui.mjs",
       "require": "./dist/comfyui.cjs",
       "default": "./dist/comfyui.mjs"
+    },
+    "./ink": {
+      "types": "./dist/ink.d.ts",
+      "import": "./dist/ink.mjs",
+      "require": "./dist/ink.cjs",
+      "default": "./dist/ink.mjs"
     }
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.12",
+    "@drincs/pixi-vn-ink": "^1.1.9",
+    "@drincs/pixi-vn-json": "^1.13.17",
     "@stable-canvas/comfyui-client": "^1.5.9",
     "jsdom": "^29.0.2",
     "ts-node": "^10.9.2",
@@ -60,16 +69,25 @@
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^5.9.3",
-    "vite-tsconfig-paths": "^6.1.1"
+    "vite-tsconfig-paths": "^6.1.1",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "@drincs/pixi-vn": ">=1.8.25",
+    "@drincs/pixi-vn-ink": ">=1.1.9",
     "@mlc-ai/web-llm": ">=0.2.84",
     "@stable-canvas/comfyui-client": ">=1.5.9",
-    "ai": ">=7.0.31"
+    "ai": ">=7.0.31",
+    "zod": ">=4.4.0"
   },
   "peerDependenciesMeta": {
+    "@drincs/pixi-vn-ink": {
+      "optional": true
+    },
     "@stable-canvas/comfyui-client": {
+      "optional": true
+    },
+    "zod": {
       "optional": true
     }
   },
