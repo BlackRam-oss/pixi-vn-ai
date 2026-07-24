@@ -6,6 +6,7 @@
     "moduleResolution": "bundler",
     "paths": {
       "pixi.js": ["./node_modules/@drincs/pixi-vn/pixi.js"],
+      "@drincs/pixi-vn-ai": ["./src/index.ts"],
       "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
